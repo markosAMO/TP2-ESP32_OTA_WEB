@@ -1,0 +1,5 @@
+BITACORA
+11/10 - Se implementó OTAwebAP junto con la carga del archivo .bin
+13/10 - Se hizo el jquery utilizado en ele jemplo de otaWebUpdater embebido en el código para que funcione cuando este en modo AP 
+ya que no permitía la subida del archivo debido a que en el código html buscaba un jquery desde una página a la que no púede acceder 
+de modo AP (https://esp32.com/viewtopic.php?t=11744)
