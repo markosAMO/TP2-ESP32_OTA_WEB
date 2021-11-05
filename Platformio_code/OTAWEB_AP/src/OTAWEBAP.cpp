@@ -112,13 +112,14 @@ void onJavaScript(void) {
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
 
+void OTAWEB_ini(void){
+  
+}
 /*
  * Se configura el ESP32 como Access Point
  */
-
-void setup(void) {
-
-  Serial.begin(115200);
+void OtaIni(){
+Serial.begin(115200);
   delay(10);
   Serial.print("Seteando WiFi en modo Access Point");
   WiFi.mode(WIFI_AP);
@@ -182,6 +183,11 @@ void setup(void) {
   });
 
   server.begin();
+}
+
+void setup(void) {
+
+  OtaIni();
 
 }
 
