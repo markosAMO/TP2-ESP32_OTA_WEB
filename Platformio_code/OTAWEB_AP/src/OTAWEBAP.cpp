@@ -112,9 +112,6 @@ void onJavaScript(void) {
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
 
-void OTAWEB_ini(void){
-  
-}
 /*
  * Se configura el ESP32 como Access Point
  */

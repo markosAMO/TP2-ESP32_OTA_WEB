@@ -12,7 +12,7 @@ def BeforeBuild():
     found = False
     with open(r"src\OTAWEBAP.cpp", "r") as f:   
         line = f.readline();
-        if(line[:-1] == 'OtaIni();'): #just for the first case
+        if(line[:-1] == 'OtaIni();'):
                 found = True;
         for line in f:
             line = line.strip();
