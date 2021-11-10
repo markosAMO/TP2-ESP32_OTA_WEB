@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Update.h>
+#include <ArduinoOTA.h>
 #include "QueryLib.h"
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
@@ -125,6 +126,49 @@ Serial.begin(115200);
    Serial.println(".");
     delay(100);
   }
+
+  /*
+   * Se incluye seguridad MD5 y manejo de errores al hacer un update
+   */
+
+  ArduinoOTA.setPassword("ESP32@OTA*123");
+  ArduinoOTA.setPasswordHash("E43A5EF0A6D7C4B5D95ACCDFCD7E8851");
+
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_FS
+      type = "filesystem";
+    }
+    Serial.println("Se comienza con el update del " + type);
+  });
+
+  ArduinoOTA.onEnd([]() {
+    Serial.println("El update finalizó");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progreso: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Error en la autenticación");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Error al comenzar el update");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Error al conectar");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Error al recibir");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("Error al finalizar el update");
+    }
+  });
+
+  ArduinoOTA.begin();
+
   Serial.print("Iniciado AP ");
   Serial.println(ssid);
   Serial.print("IP address:\t");
@@ -203,6 +247,9 @@ void Connect_WiFi() {
 }
 
 void loop(void) {
+
   server.handleClient();
+  ArduinoOTA.handle();
   delay(1);
+  
 }
