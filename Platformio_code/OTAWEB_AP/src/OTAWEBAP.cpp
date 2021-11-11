@@ -207,20 +207,6 @@ void SetupOta() {
 }
 
 /*
- * Establece conexión WiFi
- */
-
-void Connect_WiFi() {
-
-  WiFi.begin(ssid, password);
-  while(WiFi.status() != WL_CONNECTED)
-  {
-    delay(100);
-  }
-
-}
-
-/*
  * Reinicia el dispositivo
  */
 
