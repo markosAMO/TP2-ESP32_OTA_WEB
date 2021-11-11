@@ -6,6 +6,9 @@
 #include "QueryLib.h"
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
+const char* www_username = "admin";
+const char* www_password = "123456789";
+
 
 /*
  * Declaramos objeto de la libreria WebServer
@@ -131,6 +134,8 @@ void SetupServer() {
    */
 
   server.on("/serverIndex", HTTP_GET, []() {
+    if(!server.authenticate(www_username, www_password))
+      return server.requestAuthentication();
     server.sendHeader("Connection", "close");
     server.send(200, "text/html", serverIndex);
   });
@@ -140,11 +145,10 @@ void SetupServer() {
    */
 
   server.on("/update", HTTP_POST, []() {
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-    ESP.restart();
+      server.sendHeader("Connection", "close");
+      server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+      ESP.restart();
   }, []() {
-
     HTTPUpload & upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
       Serial.printf("Update: %s\n", upload.filename.c_str());
