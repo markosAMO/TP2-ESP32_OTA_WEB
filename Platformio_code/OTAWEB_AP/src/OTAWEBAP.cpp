@@ -113,43 +113,6 @@ void onJavaScript(void) {
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
 
-void setup(void) {
-
-  Serial.begin(115200);
-
-  /*
-   * Se configura el ESP32 como Access Point
-   */
-
-  delay(10);
-  Serial.print("Seteando WiFi en modo Access Point");
-  WiFi.mode(WIFI_AP);
-  while(!WiFi.softAP(ssid, password))
-  {
-   Serial.println(".");
-    delay(100);
-  }
-
-  Serial.print("Iniciado AP ");
-  Serial.println(ssid);
-  Serial.print("IP address:\t");
-  Serial.println(WiFi.softAPIP());
-
-  SetupServer();
-
-  server.begin();
-  
-  SetupOta();
-
-}
-
-void loop() {
-
-  server.handleClient();
-  ArduinoOTA.handle();
-
-}
-
 void SetupServer() {
 
   /*
@@ -266,5 +229,42 @@ void deviceReset() {
   delay(3000);
   //ESP.reset(); Analizar que libreria usar.
   delay(5000);
+
+}
+
+void setup(void) {
+
+  Serial.begin(115200);
+
+  /*
+   * Se configura el ESP32 como Access Point
+   */
+
+  delay(10);
+  Serial.print("Seteando WiFi en modo Access Point");
+  WiFi.mode(WIFI_AP);
+  while(!WiFi.softAP(ssid, password))
+  {
+   Serial.println(".");
+    delay(100);
+  }
+
+  Serial.print("Iniciado AP ");
+  Serial.println(ssid);
+  Serial.print("IP address:\t");
+  Serial.println(WiFi.softAPIP());
+
+  SetupServer();
+
+  server.begin();
+  
+  SetupOta();
+
+}
+
+void loop() {
+
+  server.handleClient();
+  ArduinoOTA.handle();
 
 }
