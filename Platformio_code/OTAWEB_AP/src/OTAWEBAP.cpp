@@ -7,6 +7,12 @@
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 
+/*
+ * Declaramos objeto de la libreria WebServer
+ */
+ 
+ WebServer server(80);
+
 
 /*
  * Login menu HTML
@@ -95,12 +101,6 @@ const char* serverIndex =
  "});"
  "});"
  "</script>";
-
-/*
- * Declaramos objeto de la libreria WebServer
- */
- 
- WebServer server(80);
  
  /*
  * Para generar codigo jQuery
@@ -113,11 +113,14 @@ void onJavaScript(void) {
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
 
-/*
- * Se configura el ESP32 como Access Point
- */
-void OtaIni(){
-Serial.begin(115200);
+void setup(void) {
+
+  Serial.begin(115200);
+
+  /*
+   * Se configura el ESP32 como Access Point
+   */
+
   delay(10);
   Serial.print("Seteando WiFi en modo Access Point");
   WiFi.mode(WIFI_AP);
@@ -127,52 +130,27 @@ Serial.begin(115200);
     delay(100);
   }
 
-  /*
-   * Se incluye seguridad MD5 y manejo de errores al hacer un update
-   */
-
-  ArduinoOTA.setPassword("ESP32@OTA*123");
-  ArduinoOTA.setPasswordHash("E43A5EF0A6D7C4B5D95ACCDFCD7E8851");
-
-  ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else { // U_FS
-      type = "filesystem";
-    }
-    Serial.println("Se comienza con el update del " + type);
-  });
-
-  ArduinoOTA.onEnd([]() {
-    Serial.println("El update finalizó");
-  });
-
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progreso: %u%%\r", (progress / (total / 100)));
-  });
-
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      Serial.println("Error en la autenticación");
-    } else if (error == OTA_BEGIN_ERROR) {
-      Serial.println("Error al comenzar el update");
-    } else if (error == OTA_CONNECT_ERROR) {
-      Serial.println("Error al conectar");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      Serial.println("Error al recibir");
-    } else if (error == OTA_END_ERROR) {
-      Serial.println("Error al finalizar el update");
-    }
-  });
-
-  ArduinoOTA.begin();
-
   Serial.print("Iniciado AP ");
   Serial.println(ssid);
   Serial.print("IP address:\t");
   Serial.println(WiFi.softAPIP());
+
+  SetupServer();
+
+  server.begin();
+  
+  SetupOta();
+
+}
+
+void loop() {
+
+  server.handleClient();
+  ArduinoOTA.handle();
+
+}
+
+void SetupServer() {
 
   /*
    * Manejo del endpoint '/' para formulario de login
@@ -223,12 +201,45 @@ Serial.begin(115200);
     }
   });
 
-  server.begin();
 }
 
-void setup(void) {
+void SetupOta() {
 
-  OtaIni();
+  /*
+   * Se incluye seguridad MD5 y manejo de errores al hacer un update OTA
+   */
+
+  ArduinoOTA.setPassword("ESP32@OTA*123");
+  ArduinoOTA.setPasswordHash("E43A5EF0A6D7C4B5D95ACCDFCD7E8851");
+
+  ArduinoOTA.onStart([]() {
+    Serial.println("Se comienza con el update OTA");
+  });
+
+  ArduinoOTA.onEnd([]() {
+    Serial.println("El update finalizó");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progreso: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Error en la autenticación");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Error al comenzar el update");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Error al conectar");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Error al recibir");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("Error al finalizar el update");
+    }
+  });
+
+  ArduinoOTA.begin();
 
 }
 
@@ -246,10 +257,14 @@ void Connect_WiFi() {
 
 }
 
-void loop(void) {
+/*
+ * Reinicia el dispositivo
+ */
 
-  server.handleClient();
-  ArduinoOTA.handle();
-  delay(1);
-  
+void deviceReset() {
+
+  delay(3000);
+  //ESP.reset(); Analizar que libreria usar.
+  delay(5000);
+
 }
