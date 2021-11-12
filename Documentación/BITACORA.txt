@@ -13,4 +13,6 @@ BITACORA
 <Arduino.h> para las pruebas que se quieren realizar, sigue habiendo un error en el puerto a pesar del cambio de framework.
 03/11 - Se realizan pruebas sobre el archivo platformio.ini para ejecutar un script previo a la ejecución del build de manera que se compruebe por medio del script la manera de corroborar la ejecución de una función con el contenido necesario de ota, se comprueba que con la configuración del archivo polatformio.ini al momento de hacer el build y con la ejecución del script no se crea el .bin y se muestra el error correctamente.
 05/11 - Se incluye seguridad MD5 con hash de la contraseña y manejo de errores. Queda probarlo con el resto de codigo desarrollado.
-
+11/11 - Se probaron las funciones de la librería ArduinoOta, no hubo ningún error pero no se reflejaba ningún resultado al utilizarlas
+      - Se probó utilizar la función server.Authenticate() en lugar de las funciones de librería ArduinoOta, esta funciona sin embargo no es posible aplicarla al botón
+        update por lo que se dejó implementada temporalmente en el ServerIndex
