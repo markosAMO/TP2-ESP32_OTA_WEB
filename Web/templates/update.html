@@ -3,11 +3,12 @@
 	<div class="row">
 		<div class="col-md-6 offset-md-3 text-center">
 			<h2>Actualizar Firmware</h2><br>
-            <form action="/update" method="POST" enctype="multipart/form-data" role="form">
+            <form action="/update" method="POST" enctype="multipart/form-data" id='upload_form' role="form">
                 <div class="form-group"> 
                     <input type="file" name="binfile" class="form-control" required><br>
                     <button type="submit" class="btn btn-secondary">Actualizar</button>
-                </div>
+                </div><br>
+                <div id='prg'>Progress: 0%</div>
             </form>
             {% if message  %}
                     <p class="alert alert-danger">{{ message }}</p>
@@ -15,4 +16,36 @@
 		</div>
 	</div>
 </div>
+
+<script>
+$('form').submit(function(e){
+    e.preventDefault();
+    var form = $('#upload_form')[0];
+    var data = new FormData(form);
+    $.ajax({
+    url: '/update',
+    type: 'POST',
+    data: data,
+    contentType: false,
+    processData:false,
+    xhr: function() {
+        var xhr = new window.XMLHttpRequest();
+        xhr.upload.addEventListener('progress', function(evt) {
+            if (evt.lengthComputable) {
+                var per = evt.loaded / evt.total;
+                $('#prg').html('progress: ' + Math.round(per*100) + '%');
+            }
+        }, false);
+        return xhr;
+    },
+    success:function(d, s) {
+        console.log('success!')
+    },
+    error: function (a, b, c) {
+
+}
+    })
+})
+</script>
+
 {% endblock %}
