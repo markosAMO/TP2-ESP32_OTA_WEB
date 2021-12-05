@@ -123,7 +123,7 @@ const char* serverIndex =
         "<h2>"
 ;
 const char* aux_version_html = 
-"</h2>"
+        "</h2>"
         "<button type=\"button\" onclick=\"window.location.href='index.html'\">Go Back</button>"
     "</center>"
 "</body>"
@@ -145,7 +145,8 @@ void SetupServer() {
    * Manejo del endpoint '/' para formulario de login
    */
  
-
+  //strcat(version, actual_version);
+  //strcat(version, aux_version_html);
   server.on("/jquery.min.js", HTTP_GET, onJavaScript);
 
   server.on("/", HTTP_GET, []() {
@@ -280,6 +281,6 @@ void setup(void) {
 void loop() {
 
   server.handleClient();
-  ArduinoOTA.handle();
+  delay(10);
 
 }
