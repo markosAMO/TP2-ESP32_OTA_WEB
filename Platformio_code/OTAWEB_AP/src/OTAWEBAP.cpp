@@ -4,6 +4,7 @@
 #include <Update.h>
 #include <ArduinoOTA.h>
 #include "QueryLib.h"
+const char* actual_version = "1.0.0"; 
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
@@ -105,6 +106,28 @@ const char* serverIndex =
  "});"
  "</script>";
  
+ char* version = 
+"<head>"
+    "<style>"
+        "h1{"
+            "color: white;"
+        "}"
+        "h2{"
+            "color: white;"
+        "}"
+    "</style>"
+"</head>"
+"<body style=\"background-color:#181A1B\";>"
+    "<center>"
+        "<h1>Version</h1>"
+        "<h2>"
+;
+const char* aux_version_html = 
+"</h2>"
+        "<button type=\"button\" onclick=\"window.location.href='index.html'\">Go Back</button>"
+    "</center>"
+"</body>"
+;
  /*
  * Para generar codigo jQuery
  */
@@ -121,6 +144,7 @@ void SetupServer() {
   /*
    * Manejo del endpoint '/' para formulario de login
    */
+ 
 
   server.on("/jquery.min.js", HTTP_GET, onJavaScript);
 
@@ -167,7 +191,8 @@ void SetupServer() {
       }
     }
   });
-
+  
+  
 }
 
 void SetupOta() {
