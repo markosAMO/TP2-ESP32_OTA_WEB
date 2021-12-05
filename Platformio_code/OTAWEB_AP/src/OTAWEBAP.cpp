@@ -106,7 +106,7 @@ const char* serverIndex =
  "});"
  "</script>";
  
- char* version = 
+ char version[2000] = 
 "<head>"
     "<style>"
         "h1{"
@@ -124,7 +124,7 @@ const char* serverIndex =
 ;
 const char* aux_version_html = 
         "</h2>"
-        "<button type=\"button\" onclick=\"window.location.href='index.html'\">Go Back</button>"
+        "<button type=\"button\" onclick=\"window.location.href='serverIndex'\">Go Back</button>"
     "</center>"
 "</body>"
 ;
@@ -145,8 +145,8 @@ void SetupServer() {
    * Manejo del endpoint '/' para formulario de login
    */
  
-  //strcat(version, actual_version);
-  //strcat(version, aux_version_html);
+  strcat(version, actual_version);
+  strcat(version, aux_version_html);
   server.on("/jquery.min.js", HTTP_GET, onJavaScript);
 
   server.on("/", HTTP_GET, []() {
@@ -193,7 +193,10 @@ void SetupServer() {
     }
   });
   
-  
+  server.on("/version", HTTP_GET, []() {
+    server.sendHeader("Connection", "close");
+    server.send(2000, "text/html", version);
+  });
 }
 
 void SetupOta() {
