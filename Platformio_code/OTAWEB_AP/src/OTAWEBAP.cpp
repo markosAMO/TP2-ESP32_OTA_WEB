@@ -152,7 +152,7 @@ void SetupServer() {
       server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
       ESP.restart();
   }, []() {
-    HTTPUpload & upload = server.upload();
+    HTTPUpload & upload = server.upload(); 
     if (upload.status == UPLOAD_FILE_START) {
       Serial.printf("Update: %s\n", upload.filename.c_str());
       if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
@@ -172,7 +172,6 @@ void SetupServer() {
   });
 
 }
-
 void SetupOta() {
 
   /*
