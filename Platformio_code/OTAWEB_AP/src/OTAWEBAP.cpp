@@ -104,7 +104,6 @@ const char* serverIndex =
  "});"
  "});"
  "</script>";
- 
  /*
  * Para generar codigo jQuery
  */
@@ -132,9 +131,10 @@ void SetupServer() {
   /*
    * Manejo del endpoint '/serverindex' para el menu de opciones con el boton de update
    */
-  server.on("/version", HTTP_POST, [](){
+  
+  server.on("/version", HTTP_GET, [](){
     server.sendHeader("Connection", "close");
-    server.send(200,"text/html",version);
+    server.send(200,"text/plain",version);
   });
   server.on("/serverIndex", HTTP_GET, []() {
     if(!server.authenticate(www_username, www_password))
@@ -149,7 +149,7 @@ void SetupServer() {
 
   server.on("/update", HTTP_POST, []() {
       server.sendHeader("Connection", "close");
-      server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+      server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
       ESP.restart();
   }, []() {
     HTTPUpload & upload = server.upload();
