@@ -52,9 +52,8 @@ def upload_file():
 @app.route('/show-version')
 def show_version():
     r = requests.get('http://192.168.4.1/version', timeout = 1)
-    data = r.text
-    print(data)
-    return render_template('version.html')
+    version = r.text
+    return render_template('version.html', version = version)
 
 @app.route('/show-data', methods=['GET'])
 def show_data():
