@@ -2,6 +2,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from flask_pymongo import PyMongo
 
 import datetime, bcrypt
+import requests
 
 app = Flask(__name__)
 app.secret_key = "otawebapp"
@@ -50,6 +51,9 @@ def upload_file():
 
 @app.route('/show-version')
 def show_version():
+    r = requests.get('192.168.4.1/version')
+    data = r.text
+    print(data)
     return render_template('version.html')
 
 @app.route('/show-data', methods=['GET'])

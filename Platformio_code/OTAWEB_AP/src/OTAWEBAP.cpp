@@ -8,7 +8,7 @@ const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
 const char* www_password = "123456789";
-
+const char* version = "1.0.0";
 
 /*
  * Declaramos objeto de la libreria WebServer
@@ -132,7 +132,10 @@ void SetupServer() {
   /*
    * Manejo del endpoint '/serverindex' para el menu de opciones con el boton de update
    */
-
+  server.on("/version", HTTP_POST, [](){
+    server.sendHeader("Connection", "close");
+    server.send(200,"text/html",version);
+  });
   server.on("/serverIndex", HTTP_GET, []() {
     if(!server.authenticate(www_username, www_password))
       return server.requestAuthentication();
