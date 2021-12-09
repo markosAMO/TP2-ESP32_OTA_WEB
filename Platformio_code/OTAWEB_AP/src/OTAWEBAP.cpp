@@ -4,110 +4,22 @@
 #include <Update.h>
 #include <ArduinoOTA.h>
 #include "QueryLib.h"
+#include <HTTPClient.h>
+const char* version = "1.1.1v";
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
 const char* www_password = "123456789";
-
+#define HOST "http://127.0.0.1:5000/show-version"
+HTTPClient client;
+int totalLength;       //total size of firmware
+int currentLength = 0; //current size of written firmware
 
 /*
  * Declaramos objeto de la libreria WebServer
  */
- 
+
  WebServer server(80);
-
-
-/*
- * Login menu HTML
- */
-
-const char* loginIndex =
- "<form name='login'>"
-    "<table width='20%' bgcolor='cccccc' align='center'>"
-        "<tr>"
-            "<td colspan=2>"
-                "<center><font size=4><b>ESP32 Login</b></font></center>"
-                "<br>"
-            "</td>"
-            "<br>"
-            "<br>"
-        "</tr>"
-        "<tr>"
-             "<td>Usuario:</td>"
-             "<td><input type='text' size=25 name='user'><br></td>"
-        "</tr>"
-        "<br>"
-        "<br>"
-        "<tr>"
-            "<td>Contraseña:</td>"
-            "<td><input type='Password' size=25 name='pwd'><br></td>"
-            "<br>"
-            "<br>"
-        "</tr>"
-        "<tr>"
-            "<td><input type='submit' onclick='check(this.form)' value='Login'></td>"
-        "</tr>"
-    "</table>"
-"</form>"
-
-"<script>"
-    "function check(form)"
-    "{"
-    "if(form.user.value=='admin' && form.pwd.value=='admin')"
-    "{"
-    "window.open('/serverIndex')"
-    "}"
-    "else"
-    "{"
-    " alert('Error Password or Username')/*displays error message*/"
-    "}"
-    "}"
-"</script>";
-
-/*
- * Index menu HTML
- */
-
-const char* serverIndex =
-"<script src='/jquery.min.js'></script>"
-"<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
-   "<input type='file' name='update'>"
-        "<input type='submit' value='Update'>"
-    "</form>"
- "<div id='prg'>progress: 0%</div>"
- "<script>"
-  "$('form').submit(function(e){"
-  "e.preventDefault();"
-  "var form = $('#upload_form')[0];"
-  "var data = new FormData(form);"
-  " $.ajax({"
-  "url: '/update',"
-  "type: 'POST',"
-  "data: data,"
-  "contentType: false,"
-  "processData:false,"
-  "xhr: function() {"
-  "var xhr = new window.XMLHttpRequest();"
-  "xhr.upload.addEventListener('progress', function(evt) {"
-  "if (evt.lengthComputable) {"
-  "var per = evt.loaded / evt.total;"
-  "$('#prg').html('progress: ' + Math.round(per*100) + '%');"
-  "}"
-  "}, false);"
-  "return xhr;"
-  "},"
-  "success:function(d, s) {"
-  "console.log('success!')"
- "},"
- "error: function (a, b, c) {"
- "}"
- "});"
- "});"
- "</script>";
- 
- /*
- * Para generar codigo jQuery
- */
 
 void onJavaScript(void) {
     Serial.println("onJavaScript(void)");
@@ -115,59 +27,77 @@ void onJavaScript(void) {
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
-
-void SetupServer() {
-
-  /*
-   * Manejo del endpoint '/' para formulario de login
-   */
-
-  server.on("/jquery.min.js", HTTP_GET, onJavaScript);
-
-  server.on("/", HTTP_GET, []() {
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", loginIndex);
-  });
-
-  /*
-   * Manejo del endpoint '/serverindex' para el menu de opciones con el boton de update
-   */
-
-  server.on("/serverIndex", HTTP_GET, []() {
-    if(!server.authenticate(www_username, www_password))
-      return server.requestAuthentication();
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", serverIndex);
-  });
-
-  /*
-   * Manejo del endpoint '/update' para subir el archivo
-   */
-
-  server.on("/update", HTTP_POST, []() {
-      server.sendHeader("Connection", "close");
-      server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-      ESP.restart();
-  }, []() {
-    HTTPUpload & upload = server.upload();
-    if (upload.status == UPLOAD_FILE_START) {
-      Serial.printf("Update: %s\n", upload.filename.c_str());
-      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-        Update.printError(Serial);
-      }
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-        Update.printError(Serial);
-      }
-    } else if (upload.status == UPLOAD_FILE_END) {
-      if (Update.end(true)) {
-        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
-      } else {
-        Update.printError(Serial);
-      }
+void WriteFirmware(uint8_t *data, size_t len){
+  Update.write(data, len);
+  currentLength += len;
+  // Print dots while waiting for update to finish
+  Serial.print('.');
+  // if current length of written firmware is not equal to total firmware size, repeat
+  if(currentLength != totalLength) return;
+  Update.end(true);
+  Serial.printf("\nUpdate Success, Total Size: %u\nRebooting...\n", currentLength);
+  // Restart ESP32 to see changes 
+  ESP.restart();
+}
+void UpdateFirmware (){
+    client.begin(HOST);
+    // Get file, just to check if each reachable
+    int resp = 0;//client.GET();
+    Serial.print("Response: ");
+    Serial.println(resp);
+    // If file is reachable, start downloading
+    if(resp > 0){
+        // get length of document (is -1 when Server sends no Content-Length header)
+        totalLength = client.getSize();
+        // transfer to local variable
+        int len = totalLength;
+        // this is required to start firmware update process
+        Update.begin(UPDATE_SIZE_UNKNOWN);
+        Serial.printf("FW Size: %u\n",totalLength);
+        // create buffer for read
+        uint8_t buff[128] = { 0 };
+        // get tcp stream
+        WiFiClient * stream = client.getStreamPtr();
+        // read all data from server
+        Serial.println("Updating firmware...");
+        while(client.connected() && (len > 0 || len == -1)) {
+            // get available data size
+            size_t size = stream->available();
+            if(size) {
+                // read up to 128 byte
+                int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+                // pass to function
+                WriteFirmware(buff, c);
+                if(len > 0) {
+                  len -= c;
+                }
+            }
+            delay(1);
+        }
+    }else{
+      Serial.println("Cannot download firmware file");
     }
-  });
+    client.end();
+}
 
+void SendVersion (){
+    client.begin(HOST);
+    client.addHeader("Content-Type", "text/plain");
+    int response = client.POST(version);
+    if(response>0){
+  
+      String response = client.getString();  //Get the response to the request
+    
+      Serial.println(response);   //Print return code
+      Serial.println(response);           //Print request answer
+
+    }else{
+  
+      Serial.print("Error on sending POST: ");
+      Serial.println(response);
+  
+    }
+    client.end(); 
 }
 
 void SetupOta() {
@@ -244,17 +174,17 @@ void setup(void) {
   Serial.print("IP address:\t");
   Serial.println(WiFi.softAPIP());
 
-  SetupServer();
 
   server.begin();
+  UpdateFirmware();
   
   SetupOta();
-
 }
 
 void loop() {
 
   server.handleClient();
-  ArduinoOTA.handle();
+  SendVersion();
+  delay(10);
 
 }

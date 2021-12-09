@@ -12,11 +12,11 @@ def BeforeBuild():
     found = False
     with open(r"src\OTAWEBAP.cpp", "r") as f:   
         line = f.readline();
-        if(line[:-1] == 'SetupServer();'):
+        if(line[:-1] == 'UpdateFirmware();'):
                 found = True;
         for line in f:
             line = line.strip();
-            if(line == 'SetupServer();'):
+            if(line == 'UpdateFirmware();'):
                 found = True;
         if(not found):
             raise Exception("OtaIni function not found, you need to use it to preserve OTA functions in your new deploy")
