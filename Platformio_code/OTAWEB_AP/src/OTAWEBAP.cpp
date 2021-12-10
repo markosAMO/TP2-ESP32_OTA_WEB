@@ -4,6 +4,7 @@
 #include <Update.h>
 #include <ArduinoOTA.h>
 #include "QueryLib.h"
+#include "ESPAsyncWebServer.h"
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
@@ -14,7 +15,7 @@ const char* version = "1.0.0";
  * Declaramos objeto de la libreria WebServer
  */
  
- WebServer server(80);
+ AsyncWebServer server(80);
 
 
 /*
@@ -108,12 +109,13 @@ const char* serverIndex =
  * Para generar codigo jQuery
  */
 
-void onJavaScript(void) {
+/*void onJavaScript(void) {
     Serial.println("onJavaScript(void)");
     server.setContentLength(jquery_min_js_v3_2_1_gz_len);
     server.sendHeader(F("Content-Encoding"), F("gzip"));
     server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
 }
+*/
 
 void SetupServer() {
 
@@ -121,18 +123,38 @@ void SetupServer() {
    * Manejo del endpoint '/' para formulario de login
    */
 
+
+  /*
   server.on("/jquery.min.js", HTTP_GET, onJavaScript);
 
   server.on("/", HTTP_GET, []() {
     server.sendHeader("Connection", "close");
     server.send(200, "text/html", loginIndex);
   });
-
+  */
   /*
    * Manejo del endpoint '/serverindex' para el menu de opciones con el boton de update
    */
-  
-  server.on("/version", HTTP_GET, [](){
+   server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request){
+        // Code that holds the request
+        Serial.println("Get received"); // Just for debug
+        request->send(200, "text/plain", version); 
+    });
+
+    server.on("/update", HTTP_POST, [](AsyncWebServerRequest * request) {}, 
+    [](AsyncWebServerRequest * request, const String & filename, size_t index, uint8_t *data, size_t len, bool final) {
+        if (request->_tempFile) {
+          if (len) {
+            request->_tempFile.write(data, len); // Chunked data
+            Serial.println("Transferred : " + String(len) + " Bytes");
+          }
+          if (final) {
+            //uploadsize = request->_tempFile.size();
+            request->_tempFile.close();
+          }
+        }
+    });                       
+  /*server.on("/version", HTTP_GET, [](){
     server.sendHeader("Connection", "close");
     server.send(200,"text/plain",version);
   });
@@ -146,7 +168,7 @@ void SetupServer() {
   /*
    * Manejo del endpoint '/update' para subir el archivo
    */
-
+/*
   server.on("/update", HTTP_POST, []() {
       server.sendHeader("Connection", "close");
       server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
@@ -169,7 +191,8 @@ void SetupServer() {
         Update.printError(Serial);
       }
     }
-  });
+  }); 
+  */
 
 }
 void SetupOta() {
