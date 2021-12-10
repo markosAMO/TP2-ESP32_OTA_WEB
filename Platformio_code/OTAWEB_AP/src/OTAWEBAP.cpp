@@ -148,28 +148,14 @@ void SetupServer() {
    */
 
   server.on("/update", HTTP_POST, []() {
-      server.sendHeader("Connection", "close");
-      server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
-      ESP.restart();
-  }, []() {
-    HTTPUpload & upload = server.upload(); 
-    if (upload.status == UPLOAD_FILE_START) {
-      Serial.printf("Update: %s\n", upload.filename.c_str());
-      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-        Update.printError(Serial);
-      }
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-        Update.printError(Serial);
-      }
-    } else if (upload.status == UPLOAD_FILE_END) {
-      if (Update.end(true)) {
-        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
-      } else {
-        Update.printError(Serial);
-      }
-    }
+      //server.sendHeader("Connection", "close");
+      //server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
+      Serial.println(server.argName(0));
+      Serial.println(server.arg(String("variable")));
+      server.send(200, "text/plain", String("POST "));
+
   });
+  
 
 }
 void SetupOta() {
