@@ -279,7 +279,6 @@ void setup(void) {
 
 void loop() {
 
-  server.handleClient();
-  ArduinoOTA.handle();
+  delay(1000);
 
 }

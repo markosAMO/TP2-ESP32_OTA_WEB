@@ -66,9 +66,12 @@ def show_data():
 @app.route('/update', methods=['POST'])
 def post_data():
     user = session['user']
+    string = {
+        "x": "hola mundo"
+    }
     binfile = request.files['binfile']
     if binfile and allowed_file(binfile.filename):
-        r = requests.post('http://192.168.4.1/update', data = binfile)
+        r = requests.post('http://192.168.4.1/update', data = string)
         mongo.save_file(binfile.filename, binfile)
         mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.4'})
         return redirect(url_for('show_data'))
