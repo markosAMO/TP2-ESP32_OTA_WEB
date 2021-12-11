@@ -3,6 +3,7 @@ from flask_pymongo import PyMongo
 
 import datetime, bcrypt
 import requests
+import base64
 
 app = Flask(__name__)
 app.secret_key = "otawebapp"
@@ -66,12 +67,16 @@ def show_data():
 @app.route('/update', methods=['POST'])
 def post_data():
     user = session['user']
-    string = {
-        "x": "hola mundo"
+    
+    binfile = request.files['binfile']  
+    databin = {
+        #"binario": binfile.read()
+        "encoded" : base64.b64encode(binfile.read())
+        #"porno":"interratial"
     }
-    binfile = request.files['binfile']
+    print(databin)
     if binfile and allowed_file(binfile.filename):
-        r = requests.post('http://192.168.4.1/update', data = string)
+        #r = requests.post('http://192.168.4.1/update', data = databin, headers = {'Content-Type':'application/json'})
         mongo.save_file(binfile.filename, binfile)
         mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.4'})
         return redirect(url_for('show_data'))
