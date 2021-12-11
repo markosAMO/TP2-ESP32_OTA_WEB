@@ -23,7 +23,7 @@ $('form').submit(function(e){
     var form = $('#upload_form')[0];
     var data = new FormData(form);
     $.ajax({
-    url: '/update',
+    url: 'http://192.168.4.1/update',
     type: 'POST',
     data: data,
     contentType: false,
