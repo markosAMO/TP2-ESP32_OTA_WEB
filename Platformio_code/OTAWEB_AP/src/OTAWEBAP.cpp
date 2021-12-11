@@ -9,101 +9,13 @@ const char* password = "123456789";
 const char* www_username = "admin";
 const char* www_password = "123456789";
 const char* version = "1.0.0";
-
+String variable;
 /*
  * Declaramos objeto de la libreria WebServer
  */
  
  WebServer server(80);
 
-
-/*
- * Login menu HTML
- */
-
-const char* loginIndex =
- "<form name='login'>"
-    "<table width='20%' bgcolor='cccccc' align='center'>"
-        "<tr>"
-            "<td colspan=2>"
-                "<center><font size=4><b>ESP32 Login</b></font></center>"
-                "<br>"
-            "</td>"
-            "<br>"
-            "<br>"
-        "</tr>"
-        "<tr>"
-             "<td>Usuario:</td>"
-             "<td><input type='text' size=25 name='user'><br></td>"
-        "</tr>"
-        "<br>"
-        "<br>"
-        "<tr>"
-            "<td>Contraseña:</td>"
-            "<td><input type='Password' size=25 name='pwd'><br></td>"
-            "<br>"
-            "<br>"
-        "</tr>"
-        "<tr>"
-            "<td><input type='submit' onclick='check(this.form)' value='Login'></td>"
-        "</tr>"
-    "</table>"
-"</form>"
-
-"<script>"
-    "function check(form)"
-    "{"
-    "if(form.user.value=='admin' && form.pwd.value=='admin')"
-    "{"
-    "window.open('/serverIndex')"
-    "}"
-    "else"
-    "{"
-    " alert('Error Password or Username')/*displays error message*/"
-    "}"
-    "}"
-"</script>";
-
-/*
- * Index menu HTML
- */
-
-const char* serverIndex =
-"<script src='/jquery.min.js'></script>"
-"<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
-   "<input type='file' name='update'>"
-        "<input type='submit' value='Update'>"
-    "</form>"
- "<div id='prg'>progress: 0%</div>"
- "<script>"
-  "$('form').submit(function(e){"
-  "e.preventDefault();"
-  "var form = $('#upload_form')[0];"
-  "var data = new FormData(form);"
-  " $.ajax({"
-  "url: '/update',"
-  "type: 'POST',"
-  "data: data,"
-  "contentType: false,"
-  "processData:false,"
-  "xhr: function() {"
-  "var xhr = new window.XMLHttpRequest();"
-  "xhr.upload.addEventListener('progress', function(evt) {"
-  "if (evt.lengthComputable) {"
-  "var per = evt.loaded / evt.total;"
-  "$('#prg').html('progress: ' + Math.round(per*100) + '%');"
-  "}"
-  "}, false);"
-  "return xhr;"
-  "},"
-  "success:function(d, s) {"
-  "console.log('success!')"
- "},"
- "error: function (a, b, c) {"
- "}"
- "});"
- "});"
- "</script>";
  /*
  * Para generar codigo jQuery
  */
@@ -116,31 +28,10 @@ void onJavaScript(void) {
 }
 
 void SetupServer() {
-
-  /*
-   * Manejo del endpoint '/' para formulario de login
-   */
-
-  server.on("/jquery.min.js", HTTP_GET, onJavaScript);
-
-  server.on("/", HTTP_GET, []() {
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", loginIndex);
-  });
-
-  /*
-   * Manejo del endpoint '/serverindex' para el menu de opciones con el boton de update
-   */
   
   server.on("/version", HTTP_GET, [](){
     server.sendHeader("Connection", "close");
     server.send(200,"text/plain",version);
-  });
-  server.on("/serverIndex", HTTP_GET, []() {
-    if(!server.authenticate(www_username, www_password))
-      return server.requestAuthentication();
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", serverIndex);
   });
 
   /*
@@ -150,63 +41,14 @@ void SetupServer() {
   server.on("/update", HTTP_POST, []() {
       //server.sendHeader("Connection", "close");
       //server.send(200, "text/html", (Update.hasError()) ? "FAIL" : "OK");
+      Serial.println("conecction successful");
       Serial.println(server.argName(0));
-      Serial.println(server.arg(String("variable")));
-      server.send(200, "text/plain", String("POST "));
+      String var = server.arg(("plain"));
+      Serial.println();
+      server.send(200, "text/plain", String("POST realizado"));
 
   });
-  
 
-}
-void SetupOta() {
-
-  /*
-   * Se incluye seguridad MD5 y manejo de errores al hacer un update OTA
-   */
-
-  ArduinoOTA.setPassword("ESP32@OTA*123");
-  ArduinoOTA.setPasswordHash("E43A5EF0A6D7C4B5D95ACCDFCD7E8851");
-
-  ArduinoOTA.onStart([]() {
-    Serial.println("Se comienza con el update OTA");
-  });
-
-  ArduinoOTA.onEnd([]() {
-    Serial.println("El update finalizó");
-  });
-
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progreso: %u%%\r", (progress / (total / 100)));
-  });
-
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      Serial.println("Error en la autenticación");
-    } else if (error == OTA_BEGIN_ERROR) {
-      Serial.println("Error al comenzar el update");
-    } else if (error == OTA_CONNECT_ERROR) {
-      Serial.println("Error al conectar");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      Serial.println("Error al recibir");
-    } else if (error == OTA_END_ERROR) {
-      Serial.println("Error al finalizar el update");
-    }
-  });
-
-  ArduinoOTA.begin();
-
-}
-
-/*
- * Reinicia el dispositivo
- */
-
-void deviceReset() {
-
-  delay(3000);
-  //ESP.reset(); Analizar que libreria usar.
-  delay(5000);
 
 }
 
@@ -236,7 +78,6 @@ void setup(void) {
 
   server.begin();
   
-  SetupOta();
 
 }
 
