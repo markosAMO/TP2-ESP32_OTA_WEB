@@ -112,9 +112,9 @@ def logout():
     else:
         message = 'Aún no se ha identificado, por favor ingrese sus datos.'
         return render_template('login.html', message=message)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route('/prueba')
+def probe():
+    return render_template('prueba.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

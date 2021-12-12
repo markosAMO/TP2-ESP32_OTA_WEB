@@ -4,33 +4,38 @@
 #include <Update.h>
 #include <ArduinoOTA.h>
 #include "QueryLib.h"
+#include <ESPAsyncWebServer.h>
+#include <HttpClient.h>
 const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
 const char* www_password = "123456789";
 const char* version = "1.0.0";
+
 String variable;
 /*
  * Declaramos objeto de la libreria WebServer
  */
  
- WebServer server(80);
+WebServer server(80);
 
- /*
- * Para generar codigo jQuery
- */
-
-void onJavaScript(void) {
-    Serial.println("onJavaScript(void)");
-    server.setContentLength(jquery_min_js_v3_2_1_gz_len);
-    server.sendHeader(F("Content-Encoding"), F("gzip"));
-    server.send_P(200, "text/javascript", jquery_min_js_v3_2_1_gz, jquery_min_js_v3_2_1_gz_len);
-}
 
 void SetupServer() {
   
   server.on("/version", HTTP_GET, [](){
     server.sendHeader("Connection", "close");
+    HTTPClient http;
+ 
+    http.begin("localhost:5000/prueba"); //Specify the URL
+    int httpCode = http.GET(); 
+    String payload = http.getString();     //Make the request 
+    Serial.println(payload);
+    Serial.println(httpCode);
+    if (httpCode > 0) { //Check for the returning code
+        String payload = http.getString();
+        Serial.println(httpCode);
+        Serial.println(payload);
+    }
     server.send(200,"text/plain",version);
   });
 
@@ -83,7 +88,7 @@ void setup(void) {
 
 void loop() {
 
+ 
   server.handleClient();
-  ArduinoOTA.handle();
 
 }
