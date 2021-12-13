@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_pymongo import PyMongo
-
+import waitress
 import datetime, bcrypt, requests, os
 
 UPLOAD_FOLDER = 'static/uploads/'
@@ -81,7 +81,7 @@ def post_data():
 
 @app.route('/display/firmware.bin')
 def display_image():
-	return redirect(url_for('static', filename='uploads/firmware.bin'), code=301)
+	return redirect(url_for('static', filename='uploads/firmware.bin'))
 
 @app.route('/add-new-user')
 def add_new_user():
@@ -124,4 +124,5 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
-    app.run(host='127.1.1.1', port=5000, debug=True)
+    #from waitress import serve
+    app.run(host='192.168.4.2', port=5000, debug=True)
