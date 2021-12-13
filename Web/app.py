@@ -30,7 +30,7 @@ def login():
         if user_found:
             user_val = user_found['user']
             passwordcheck = user_found['pwd']
-            
+
             if bcrypt.checkpw(pwd.encode('utf-8'), passwordcheck):
                 session['user'] = user_val
                 return redirect(url_for('home'))
@@ -73,7 +73,8 @@ def post_data():
         binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], binfile.filename))
         requests.get('http://192.168.4.1/update')
         mongo.save_file(binfile.filename, binfile)
-        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.5'})
+        version = requests.get('http://192.168.4.1/version', timeout = 10).text
+        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': version})
         return redirect(url_for('show_data'))
     else:
         message = 'Tipo de archivo inválido, intente nuevamente.'
@@ -96,7 +97,7 @@ def register():
         user = request.form.get('user')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
-        
+
         user_found = mongo.db.ota_users.find_one({'user': user})
         if user_found:
             message = 'Ya existe un usuario con ese nombre.'
@@ -124,5 +125,4 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
-    #from waitress import serve
     app.run(host='192.168.4.2', port=5000, debug=True)
