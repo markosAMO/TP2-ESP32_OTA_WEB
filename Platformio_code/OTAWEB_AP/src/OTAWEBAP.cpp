@@ -10,7 +10,7 @@ const char* ssid = "ESP32_AP";
 const char* password = "123456789";
 const char* www_username = "admin";
 const char* www_password = "123456789";
-const char* version = "1.0.0";
+const char* version = "2.0.0";
 String variable;
 /*
  * Declaramos objeto de la libreria WebServer
@@ -42,12 +42,11 @@ void ota(){
     // on much longer than it will be off. Other pins than LED_BUILTIN may be used. The second
     // value is used to put the LED on. If the LED is on with HIGH, that value should be passed
     // httpUpdate.setLedPin(LED_BUILTIN, LOW);
-
+    httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     httpUpdate.onStart(update_started);
     httpUpdate.onEnd(update_finished);
     httpUpdate.onProgress(update_progress);
     httpUpdate.onError(update_error);
-
     t_httpUpdate_return ret = httpUpdate.update(client, "http://192.168.4.2:5000/display/firmware.bin");
     // Or:
     //t_httpUpdate_return ret = httpUpdate.update(client, "server", 80, "/file.bin");
