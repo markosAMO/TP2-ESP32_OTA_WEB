@@ -1,12 +1,14 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_pymongo import PyMongo
 
-import datetime, bcrypt
-import requests
+import datetime, bcrypt, requests, os
+
+UPLOAD_FOLDER = 'static/uploads/'
 
 app = Flask(__name__)
 app.secret_key = "otawebapp"
 app.config['MONGO_URI']='mongodb://localhost:27017/otadata'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 mongo = PyMongo(app)
 
 ALLOWED_EXTENSIONS = set(['bin', 'ino'])
@@ -68,13 +70,18 @@ def post_data():
     user = session['user']
     binfile = request.files['binfile']
     if binfile and allowed_file(binfile.filename):
-        r = requests.post('http://192.168.4.1/update', data = binfile, headers={'Content-Type': 'multipart/form-data'})
+        binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], binfile.filename))
+        requests.get('http://192.168.4.1/update')
         mongo.save_file(binfile.filename, binfile)
-        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.4'})
+        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.5'})
         return redirect(url_for('show_data'))
     else:
         message = 'Tipo de archivo inválido, intente nuevamente.'
         return render_template('update.html', message = message)
+
+@app.route('/display/firmware.bin')
+def display_image():
+	return redirect(url_for('static', filename='uploads/firmware.bin'), code=301)
 
 @app.route('/add-new-user')
 def add_new_user():
