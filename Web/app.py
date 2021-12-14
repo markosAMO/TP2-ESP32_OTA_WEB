@@ -1,6 +1,5 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_pymongo import PyMongo
-import waitress
 import datetime, bcrypt, requests, os, time
 
 UPLOAD_FOLDER = 'static/uploads/'
@@ -11,7 +10,7 @@ app.config['MONGO_URI']='mongodb://localhost:27017/otadata'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 mongo = PyMongo(app)
 
-ALLOWED_EXTENSIONS = set(['bin', 'ino'])
+ALLOWED_EXTENSIONS = set(['bin'])
 
 @app.route('/')
 def land():
@@ -70,12 +69,11 @@ def post_data():
     user = session['user']
     binfile = request.files['binfile']
     if binfile and allowed_file(binfile.filename):
-        binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], binfile.filename))
-        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'version'})
+        binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], 'firmware.bin'))
         requests.get('http://192.168.4.1/update')
-        time.sleep(10)
         mongo.save_file(binfile.filename, binfile)
-        version = requests.get('http://192.168.4.1/version').text
+        #time.sleep(10)     //Aqui se hacia un sleep por 10 seg para dar tiempo a la actualización del firmware en el ESP y que no de timeout al consultar la version.
+        #version = requests.get('http://192.168.4.1/version').text  // La idea era recuperar la version del ESP, el problema es que al resetear se pierde la conexión con el server.
         mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.0'})
         return redirect(url_for('show_data'))
     else:
@@ -127,4 +125,4 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
-    app.run(host='192.168.4.2', port=5000, debug=True)
+    app.run(host='192.168.4.2', port=5000, debug=True) #La IP declarada es la local, se declara asi y no como 'localhost' porque el ESP no la detecta para hacer el update.
