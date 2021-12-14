@@ -1,7 +1,7 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_pymongo import PyMongo
 import waitress
-import datetime, bcrypt, requests, os
+import datetime, bcrypt, requests, os, time
 
 UPLOAD_FOLDER = 'static/uploads/'
 
@@ -72,9 +72,10 @@ def post_data():
     if binfile and allowed_file(binfile.filename):
         binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], binfile.filename))
         requests.get('http://192.168.4.1/update')
+        time.sleep(10)
         mongo.save_file(binfile.filename, binfile)
-        version = requests.get('http://192.168.4.1/version', timeout = 10).text
-        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': version})
+        version = requests.get('http://192.168.4.1/version').text
+        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'v1.0.0'})
         return redirect(url_for('show_data'))
     else:
         message = 'Tipo de archivo inválido, intente nuevamente.'
