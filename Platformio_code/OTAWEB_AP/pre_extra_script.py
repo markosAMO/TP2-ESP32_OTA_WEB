@@ -19,8 +19,8 @@ def BeforeBuild():
             if(line == 'SetupServer();'):
                 found = True;
         if(not found):
-            raise Exception("OtaIni function not found, you need to use it to preserve OTA functions in your new deploy")
+            raise Exception("OTA function not found, you need to use it to preserve OTA functions in your new deploy")
         else:
-            print('function OtaIni was found')
+            print('function SetupServer was found')
     f.close()
 env.AddPreAction("buildfs", BeforeBuild())
