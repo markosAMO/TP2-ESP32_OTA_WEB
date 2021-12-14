@@ -13,7 +13,9 @@ const char* version = "3.0.0";
  */
  
 WebServer server(80);
-
+/*
+ * función encargada de realizar el upload
+ */
 void UpdateFile(){
   WiFiClient client;
   /*
