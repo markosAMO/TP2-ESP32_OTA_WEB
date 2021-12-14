@@ -71,6 +71,7 @@ def post_data():
     binfile = request.files['binfile']
     if binfile and allowed_file(binfile.filename):
         binfile.save(os.path.join(app.config['UPLOAD_FOLDER'], binfile.filename))
+        mongo.db.ota_transactions.insert_one({'date': datetime.datetime.now().strftime("%b %d %Y %H:%M:%S"), 'user': user, 'filename': binfile.filename, 'version': 'version'})
         requests.get('http://192.168.4.1/update')
         time.sleep(10)
         mongo.save_file(binfile.filename, binfile)
