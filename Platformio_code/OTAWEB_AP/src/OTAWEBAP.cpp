@@ -62,7 +62,7 @@ void SetupServer() {
   server.on("/update", HTTP_GET, []() {
       UpdateFile();
       Serial.println();
-      server.send(200, "text/plain", String("POST realizado"));
+      server.send(200, "text/plain", String("update success"));
   });
 
 
